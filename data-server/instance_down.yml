@@ -1,0 +1,23 @@
+- hosts: localhost
+  become: no
+  connection: local
+  gather_facts: no
+
+  vars_files:
+    - instance_vars.yml
+
+  tasks:
+    - name: infrastructure is down
+      terraform:
+        project_path: ./terraform
+        state: absent
+        variables: "{{ terraform_vars }}"
+        backend_config: "{{ terraform_backend_config }}"
+      register: tf
+
+    - name: inventory is reverted
+      file:
+        path:
+          - inventory/_10-instance
+          - inventory/_20-wireguard
+        state: absent

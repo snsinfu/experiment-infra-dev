@@ -1,0 +1,13 @@
+terraform_vars:
+  server_hostname: "{{ infra.data.hostname }}"
+  server_location: "{{ infra.data.location }}"
+  server_type: "{{ infra.data.type }}"
+  server_image: "{{ infra.data.image }}"
+  volume_id: "{{ volume_id }}"
+  admin_user: "{{ admin_user }}"
+  admin_ssh_pubkeys: "{{ admin_ssh_pubkeys | to_json }}"
+
+terraform_backend_config:
+  region: "{{ infra.terraform_s3_region }}"
+  bucket: "{{ infra.terraform_s3_bucket }}"
+  key: "{{ infra.terraform_s3_prefix }}/data-server.tfstate"

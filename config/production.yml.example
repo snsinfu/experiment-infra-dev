@@ -1,0 +1,18 @@
+infra:
+  terraform_s3_region: ap-northeast-1
+  terraform_s3_bucket: ...
+  terraform_s3_prefix: site/production
+
+  data:
+    hostname: data.private
+    location: fsn1
+    type: cx11
+    image: 1234567890
+
+volume_id: 1234567890
+volume_path: /data
+
+admin_user: sinfu
+admin_ssh_pubkeys:
+  - ssh-ed25519 AAAAC3Nza...
+  - ssh-ed25519 AAAAC3Nza...

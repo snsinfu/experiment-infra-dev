@@ -1,0 +1,25 @@
+#!/bin/sh -eu
+
+if [ $# -ne 3 ]; then
+    echo "usage: $0 <name> <size> <location>" >&2
+    exit 1
+fi
+
+name="$1"
+size="$2"
+location="$3"
+
+curl \
+  -fsSL \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${HCLOUD_TOKEN}" \
+  -d @- \
+  "https://api.hetzner.cloud/v1/volumes" \
+<< END
+{
+  "size": ${size},
+  "name": "${name}",
+  "location": "${location}"
+}
+END

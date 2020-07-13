@@ -1,0 +1,30 @@
+- hosts: localhost
+  become: no
+  connection: local
+  gather_facts: no
+
+  vars_files:
+    - instance_vars.yml
+
+  tasks:
+    - name: infrastructure is up
+      terraform:
+        project_path: ./terraform
+        state: present
+        force_init: yes
+        variables: "{{ terraform_vars }}"
+        backend_config: "{{ terraform_backend_config }}"
+      register: tf
+
+    - name: server address is collected
+      set_fact:
+        server_addresses: "{{ tf.outputs.server_addresses.value }}"
+
+    - name: inventory is updated
+      copy:
+        content: |
+          [target]
+          {% for host, addr in server_addresses.items() %}
+          {{ host }} public_address={{ addr }}
+          {% endfor %}
+        dest: inventory/_10-instance
