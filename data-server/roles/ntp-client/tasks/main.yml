@@ -1,0 +1,22 @@
+- name: openntpd is installed
+  pkgng:
+    name: openntpd
+    state: present
+
+- name: openntpd configuration is up
+  copy:
+    content: |
+      servers {{ ntp_pool }}
+    dest: /usr/local/etc/ntpd.conf
+  notify: restart openntpd
+
+- name: openntpd service configuration is up
+  copy:
+    content: |
+      openntpd_enable="YES"
+    dest: /etc/rc.conf.d/openntpd
+
+- name: openntpd service is started
+  service:
+    name: openntpd
+    state: started

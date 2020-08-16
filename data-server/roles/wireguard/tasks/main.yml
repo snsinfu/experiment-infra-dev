@@ -1,0 +1,42 @@
+- name: wireguard is installed
+  pkgng:
+    name: wireguard
+    state: present
+
+- name: wireguard service configuration is up
+  copy:
+    content: |
+      wireguard_enable="YES"
+      wireguard_interfaces="wg0"
+    dest: /etc/rc.conf.d/wireguard
+
+- name: wireguard configuration is up
+  template:
+    src: wireguard.conf.j2
+    dest: /usr/local/etc/wireguard/wg0.conf
+    mode: 0600
+  vars:
+    node: "{{ wireguard_nodes | where(name=inventory_hostname) | first }}"
+    peers: "{{ wireguard_nodes | unless(name=inventory_hostname) }}"
+    network: "{{ wireguard_network }}"
+  notify: restart wireguard
+
+- name: wireguard service port is registered
+  lineinfile:
+    path: /etc/services
+    regexp: '^wireguard\s'
+    line: "wireguard {{ wireguard_port }}/udp"
+
+# Service script provided by FreeBSD's wireguard package does not support
+# `status` command. This breaks Ansible's service module. Fix it.
+- name: wireguard service script is patched
+  patch:
+    src: rc-wireguard.patch
+    dest: /usr/local/etc/rc.d/wireguard
+  register: task
+  failed_when: task.failed and not task.msg.startswith('Ignoring previously applied')
+
+- name: wireguard service is started
+  service:
+    name: wireguard
+    state: started

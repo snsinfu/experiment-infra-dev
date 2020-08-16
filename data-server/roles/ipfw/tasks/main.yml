@@ -1,0 +1,18 @@
+- name: ipfw script is up
+  template:
+    src: "{{ ipfw_script }}"
+    dest: /etc/ipfw.rules
+    mode: 0600
+  notify: restart ipfw
+
+- name: ipfw service is enabled
+  copy:
+    content: |
+      firewall_enable="YES"
+      firewall_script="/etc/ipfw.rules"
+    dest: /etc/rc.conf.d/ipfw
+
+- name: ipfw service is started
+  service:
+    name: ipfw
+    state: started

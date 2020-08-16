@@ -2,4 +2,37 @@
   become: yes
 
   tasks:
-    - ping:
+
+    # BASIC SYSTEM SETTINGS --------------------------------------------------
+
+    - include_role:
+        name: ntp-client
+      vars:
+        ntp_pool: ntp.hetzner.de
+
+
+    # INTEGRATE WIREGUARD ----------------------------------------------------
+
+    - include_role:
+        name: wireguard
+
+    - name: wireguard inventory is generated
+      template:
+        src: assets/inventory-wireguard.j2
+        dest: inventory-wireguard-{{ inventory_hostname }}
+      vars:
+        node: "{{ wireguard_nodes | where(name=inventory_hostname) | first }}"
+
+    - name: wireguard inventory is retrieved back
+      fetch:
+        src: inventory-wireguard-{{ inventory_hostname }}
+        dest: inventory/_20-wireguard-{{ inventory_hostname }}
+        flat: yes
+
+
+    # FIREWALL ---------------------------------------------------------------
+
+    - include_role:
+        name: ipfw
+      vars:
+        ipfw_script: assets/ipfw.rules.j2

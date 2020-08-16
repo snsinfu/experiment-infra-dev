@@ -1,0 +1,4 @@
+- name: restart wireguard
+  service:
+    name: wireguard
+    state: restarted

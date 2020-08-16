@@ -1,0 +1,14 @@
+[Interface]
+PrivateKey = {{ node.private_key | default('') }}
+Address = {{ wireguard_network | ipaddr(node.host_id) }}
+ListenPort = {{ wireguard_port }}
+
+{% for peer in peers %}
+[Peer] # {{ peer.name }}
+PublicKey = {{ peer.private_key | wg_pubkey }}
+AllowedIPs = {{ wireguard_network | ipsubnet(32, peer.host_id) }}
+{% if peer.name in hostvars and 'public_address' in hostvars[peer.name] %}
+EndPoint = {{ hostvars[peer.name].public_address }}:{{ wireguard_port }}
+{% endif %}
+
+{% endfor %}

@@ -1,0 +1,49 @@
+#!/bin/sh
+set -efu
+
+LOOP="lo*"
+WAN="{{ ansible_default_ipv4.interface }}"
+VPN="wg0"
+
+ipfw -qf flush
+alias ADD="ipfw -q add"
+
+
+# GENERAL RULES --------------------------------------------------------------
+
+ADD 010 allow via ${LOOP}
+ADD 020 check-state
+
+ADD 030 allow icmp from any to any
+ADD 040 allow tcp  from any to any keep-state established
+
+
+# INBOUND RULES --------------------------------------------------------------
+
+# Open ports on the public interface.
+ADD 110 allow udp from any to me wireguard in via ${WAN} keep-state
+
+# Open ports on the VPN interface.
+ADD 120 allow tcp from any to me ssh        in via ${VPN} keep-state setup
+ADD 120 allow tcp from any to me nfs        in via ${VPN} keep-state setup
+ADD 120 allow tcp from any to me postgresql in via ${VPN} keep-state setup
+ADD 120 allow tcp from any to me pgbouncer  in via ${VPN} keep-state setup
+
+# Reject access to non-open ports gracefully when accessed from VPN. This is
+# for better diagnosability.
+ADD 150 unreach port tcp from any to me in via ${VPN}
+ADD 150 unreach port udp from any to me in via ${VPN}
+ADD 159 unreach host                    in via ${VPN}
+
+# Deny the rest.
+ADD 199 deny in
+
+
+# OUTBOUND RULES -------------------------------------------------------------
+
+# Block access to cloud metadata service because metadata and userdata may
+# contain sensitive information.
+ADD 210 unreach net all from any to 169.254.0.0/16 out
+
+# Allow all other outbound packets.
+ADD 299 allow out keep-state

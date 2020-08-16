@@ -54,3 +54,9 @@ To destroy the infrastructure:
 ```console
 $ ansible-playbook instance_down.yml
 ```
+
+You can ssh into the server:
+
+```console
+$ ../scripts/ansible-ssh data
+```
